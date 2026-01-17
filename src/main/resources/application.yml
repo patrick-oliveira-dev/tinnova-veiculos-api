@@ -1,0 +1,58 @@
+spring:
+  application:
+    name: veiculos-api
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/veiculos_db
+    username: admin
+    password: admin123
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 60000ms
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600000 # 1 hora em milissegundos
+
+# Configurações da API de câmbio
+exchange:
+  api:
+    primary:
+      url: https://economia.awesomeapi.com.br/json/last/USD-BRL
+    fallback:
+      url: https://api.frankfurter.app/latest?from=USD&to=BRL
+    cache-ttl: 3600 # 1 hora em segundos
+
+# Configurações JWT
+jwt:
+  secret: tinnova-secret-key-change-this-in-production-min-256-bits-12345678901234567890
+  expiration: 86400000 # 24 horas em milissegundos
+
+# Swagger/OpenAPI
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+
+# Logging
+logging:
+  level:
+    com.tinnova: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.springframework.security: DEBUG
