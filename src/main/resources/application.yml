@@ -3,7 +3,7 @@ spring:
     name: veiculos-api
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/veiculos_db
+    url: jdbc:postgresql://localhost:5433/veiculos_db
     username: admin
     password: admin123
     driver-class-name: org.postgresql.Driver
@@ -45,10 +45,11 @@ jwt:
 # Swagger/OpenAPI
 springdoc:
   api-docs:
-    path: /api-docs
+    path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
     operationsSorter: method
+    disable-swagger-default-url: true
 
 # Logging
 logging:
