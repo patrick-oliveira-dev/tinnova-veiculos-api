@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.math.BigDecimal;
 import java.util.List;
 
+import com.tinnova.veiculos.config.TestSecurityConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,7 +31,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tinnova.veiculos.config.TestSecurityConfig;
 import com.tinnova.veiculos.dto.request.VeiculoRequest;
 import com.tinnova.veiculos.dto.response.VeiculoResponse;
 import com.tinnova.veiculos.exception.DuplicatePlacaException;
@@ -73,13 +73,31 @@ class VeiculoControllerTest {
             .precoUsd( new BigDecimal( "20000.00" ) ).precoBrl( new BigDecimal( "100000.00" ) ).build();
     }
 
-
     @Test
-    @DisplayName( "GET /veiculos - Deve retornar 403 quando não autenticado" )
-    void deveRetornar403QuandoNaoAutenticado()
+    @DisplayName( "GET /veiculos - Deve retornar 401 quando não autenticado" )
+    void deveRetornar401QuandoNaoAutenticado()
         throws Exception {
 
-        mockMvc.perform( get( "/veiculos" ) ).andExpect( status().isForbidden() ); // 403 em vez de 401
+        // Note que NÃO usamos @WithMockUser aqui
+        mockMvc.perform( get( "/veiculos" ) ).andExpect( status().isUnauthorized() );
+        // Se continuar dando 403, verifique sua configuração de Security (EntryPoint)
+    }
+
+
+    @Test
+    @WithMockUser( roles = "ADMIN" )
+    @DisplayName( "PUT /veiculos/{id} - Deve retornar 400 e payload padronizado ao enviar dados inválidos" )
+    void putInvalidoDeveFalharComPayloadPadronizado()
+        throws Exception {
+
+        VeiculoRequest requestInvalido = new VeiculoRequest();
+        requestInvalido.setMarca( "" ); // Inválido
+
+        mockMvc.perform( put( "/veiculos/1" ).contentType( MediaType.APPLICATION_JSON ).content( objectMapper.writeValueAsString( requestInvalido ) ) )
+            .andExpect( status().isBadRequest() )
+            // Validação do Requisito: Payload de erro padronizado
+            .andExpect( jsonPath( "$.status" ).value( 400 ) ).andExpect( jsonPath( "$.message" ).exists() ).andExpect( jsonPath( "$.timestamp" ).exists() )
+            .andExpect( jsonPath( "$.details" ).isArray() );
     }
 
 

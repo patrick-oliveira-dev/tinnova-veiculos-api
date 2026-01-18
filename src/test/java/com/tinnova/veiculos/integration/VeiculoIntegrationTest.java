@@ -267,13 +267,13 @@ class VeiculoIntegrationTest {
 
 
     @Test
-    @DisplayName( "Fluxo: Sem autenticação deve retornar 403" )
+    @DisplayName( "Fluxo: Sem autenticação deve retornar 401" )
     void fluxoSemAutenticacao()
         throws Exception {
 
-        mockMvc.perform( get( "/veiculos" ) ).andExpect( status().isForbidden() );
+        mockMvc.perform( get( "/veiculos" ) ).andExpect( status().isUnauthorized() );
 
-        mockMvc.perform( post( "/veiculos" ).contentType( MediaType.APPLICATION_JSON ).content( "{}" ) ).andExpect( status().isForbidden() );
+        mockMvc.perform( post( "/veiculos" ).contentType( MediaType.APPLICATION_JSON ).content( "{}" ) ).andExpect( status().isUnauthorized() );
     }
 
 

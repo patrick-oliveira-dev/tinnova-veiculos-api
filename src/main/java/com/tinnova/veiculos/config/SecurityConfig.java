@@ -21,6 +21,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import com.tinnova.veiculos.security.JwtAuthenticationFilter;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 
@@ -38,18 +39,24 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain( HttpSecurity http )
         throws Exception {
 
-        http.csrf( AbstractHttpConfigurer::disable ).authorizeHttpRequests(
-            auth -> auth.requestMatchers( "/auth/**" ).permitAll().requestMatchers( "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html" ).permitAll()
-                .requestMatchers( "/actuator/**" ).permitAll()
+        http.csrf( AbstractHttpConfigurer::disable ).sessionManagement( session -> session.sessionCreationPolicy( SessionCreationPolicy.STATELESS ) )
+            .exceptionHandling( exception -> exception.authenticationEntryPoint( ( request, response, authException ) -> {
+                response.setStatus( HttpServletResponse.SC_UNAUTHORIZED );
+                response.setContentType( "application/json" );
 
-                .requestMatchers( HttpMethod.GET, "/veiculos/**" ).hasAnyRole( "USER", "ADMIN" )
-
-                .requestMatchers( HttpMethod.POST, "/veiculos/**" ).hasRole( "ADMIN" ).requestMatchers( HttpMethod.PUT, "/veiculos/**" ).hasRole( "ADMIN" )
-                .requestMatchers( HttpMethod.PATCH, "/veiculos/**" ).hasRole( "ADMIN" ).requestMatchers( HttpMethod.DELETE, "/veiculos/**" ).hasRole( "ADMIN" )
-
-                .anyRequest().authenticated() )
-            .sessionManagement( session -> session.sessionCreationPolicy( SessionCreationPolicy.STATELESS ) ).authenticationProvider( authenticationProvider() )
-            .addFilterBefore( jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class );
+                String json = String.format(
+                    "{\"status\": 401, \"message\": \"Acesso negado: Token ausente ou inválido\", \"timestamp\": \"%s\"}",
+                    java.time.LocalDateTime.now() );
+                response.getWriter().write( json );
+            } ) )
+            .authorizeHttpRequests(
+                auth -> auth.requestMatchers( "/auth/**" ).permitAll().requestMatchers( "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html" ).permitAll()
+                    .requestMatchers( "/actuator/**" ).permitAll()
+                    // Regras de acesso por Role
+                    .requestMatchers( HttpMethod.GET, "/veiculos/**" ).hasAnyRole( "USER", "ADMIN" ).requestMatchers( HttpMethod.POST, "/veiculos/**" )
+                    .hasRole( "ADMIN" ).requestMatchers( HttpMethod.PUT, "/veiculos/**" ).hasRole( "ADMIN" ).requestMatchers( HttpMethod.PATCH, "/veiculos/**" )
+                    .hasRole( "ADMIN" ).requestMatchers( HttpMethod.DELETE, "/veiculos/**" ).hasRole( "ADMIN" ).anyRequest().authenticated() )
+            .authenticationProvider( authenticationProvider() ).addFilterBefore( jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class );
 
         return http.build();
     }
