@@ -1,0 +1,38 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  cache:
+    type: none
+
+jwt:
+  secret: test-secret-key-min-256-bits-for-testing-purposes-only-do-not-use-in-production
+  expiration: 3600000
+
+exchange:
+  api:
+    primary:
+      url: https://economia.awesomeapi.com.br/json/last/USD-BRL
+    fallback:
+      url: https://api.frankfurter.app/latest?from=USD&to=BRL
+
+logging:
+  level:
+    com.tinnova: ERROR
+    org.springframework: ERROR
